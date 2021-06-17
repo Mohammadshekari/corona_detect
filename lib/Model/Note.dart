@@ -13,17 +13,20 @@ String clientToJson(Client data) {
 class Client {
   int id;
   String name;
+  String gender;
   String number;
 
   Client({
     this.id,
     this.name,
+    this.gender,
     this.number,
   });
 
   factory Client.fromMap(Map<String, dynamic> json) => new Client(
     id: json["id"],
     name: json["title"],
+    gender: json["gender"],
     number: json["number"],
   );
 
@@ -31,5 +34,6 @@ class Client {
     "id": id,
     "title": name,
     "number": number,
+    "gender": gender,
   };
 }

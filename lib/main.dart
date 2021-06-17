@@ -8,10 +8,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+
 void main() {
   runApp(MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -79,7 +79,7 @@ class SplashPage extends StatelessWidget {
                           Navigator.pushReplacementNamed(context, '/second');
                         });
                       },
-                      child: Text('دادن تست'),
+                      child: Text('تست کرونا'),
                     ),
                   ),
                   TextButton(
@@ -130,6 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
   YesOrNo? q3 = YesOrNo.no;
   YesOrNo? q4 = YesOrNo.no;
   YesOrNo? q5 = YesOrNo.no;
+  String dropdownValue = 'اقا';
   @override
   void initState() {}
   var styleFrom = TextButton.styleFrom(
@@ -413,10 +414,43 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ],
                   ),
+                  Column(
+                    children: [
+                      Column(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          DropdownButton<String>(
+                            value: dropdownValue,
+                            icon: const Icon(Icons.arrow_downward),
+                            iconSize: 24,
+                            elevation: 16,
+                            style: const TextStyle(color: Colors.deepPurple),
+                            underline: Container(
+                              height: 2,
+                              color: Colors.amber,
+                            ),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                dropdownValue = newValue!;
+                              });
+                            },
+                            items: <String>['اقا', 'خانم']
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
                   TextButton(
                     style: styleFrom,
                     onPressed: () {
-                      calculateAndSave(myController.text, q1, q2, q3, q4, q5);
+                      calculateAndSave(
+                          myController.text, dropdownValue, q1, q2, q3, q4, q5);
                     },
                     child: Text('مشاهده تاریخچه'),
                   ),
@@ -428,7 +462,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-void calculateAndSave(name, q1, q2, q3, q4, q5) async {
+void calculateAndSave(name, gender, q1, q2, q3, q4, q5) async {
   var sum = 0;
   if (q1 == YesOrNo.yes) {
     sum += 25;
@@ -448,5 +482,5 @@ void calculateAndSave(name, q1, q2, q3, q4, q5) async {
   print(name + sum.toString());
   // Create a Dog and add it to the dogs table
   DBProvider.db
-      .newClient(Client(name: name, number: sum.toString()));
+      .newClient(Client(name: name, gender: gender, number: sum.toString()));
 }
