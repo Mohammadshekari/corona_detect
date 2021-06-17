@@ -1,11 +1,17 @@
 import 'dart:html';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:coronadetect/Model/Note.dart';
+import 'package:coronadetect/Model/SqliteHandler.dart';
+import 'package:coronadetect/models.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 void main() {
   runApp(MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -21,8 +27,9 @@ class MyApp extends StatelessWidget {
           '/second': (context) => MyHomePage(),
         },
         theme: ThemeData(
-            primarySwatch: Colors.blue,
-            primaryColor: Colors.green,
+            unselectedWidgetColor: Colors.white,
+            primarySwatch: Colors.amber,
+            primaryColor: Colors.amber,
             accentColor: Colors.orange,
             primaryColorLight: Colors.orange,
             scaffoldBackgroundColor: Colors.white,
@@ -32,34 +39,65 @@ class MyApp extends StatelessWidget {
 }
 
 bool isPlayed = false;
+
 class SplashPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    new Future.delayed(const Duration(seconds: 10), () {
-      Navigator.pushReplacementNamed(context, '/second');
-    });
+    isPlayed = false;
     return FutureBuilder(
-        future: loadMusic(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
-          // AsyncSnapshot<Your object type>
-          return Scaffold(
-            backgroundColor: Colors.green,
-            body: Container(
-              padding: EdgeInsets.all(10.0),
-              child: Column(
+      // AsyncSnapshot<Your object type>
+      var styleFrom = TextButton.styleFrom(
+        primary: Colors.black87,
+        textStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        backgroundColor: Colors.amber,
+        padding:
+            EdgeInsets.only(right: 30.0, left: 30.0, top: 15.0, bottom: 15.0),
+      );
+      return Scaffold(
+        backgroundColor: Colors.black87,
+        body: Container(
+          padding: EdgeInsets.all(10.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Center(
+                child: Text(
+                  'Corona Tester',
+                  style: TextStyle(fontSize: 60, color: Colors.amber),
+                ),
+              ),
+              Column(
                 children: [
-                  new Image.asset('images/test.jpg'),
-                  Center(
-                    child: Text(
-                      'Flutter Learning',
-                      style: TextStyle(fontSize: 50),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 30.0),
+                    child: TextButton(
+                      style: styleFrom,
+                      onPressed: () {
+                        loadMusic();
+                        new Future.delayed(const Duration(seconds: 5), () {
+                          Navigator.pushReplacementNamed(context, '/second');
+                        });
+                      },
+                      child: Text('دادن تست'),
                     ),
+                  ),
+                  TextButton(
+                    style: styleFrom,
+                    onPressed: () {
+                      new Future.delayed(const Duration(seconds: 5), () {
+                        Navigator.pushReplacementNamed(context, '/second');
+                      });
+                    },
+                    child: Text('مشاهده تاریخچه'),
                   ),
                 ],
               ),
-            ),
-          );
-        });
+            ],
+          ),
+        ),
+      );
+    });
   }
 }
 
@@ -84,139 +122,331 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => new _MyHomePageState();
 }
 
+enum YesOrNo { yes, no }
+
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  int _clicked = 0;
-  String value = '';
-
-  final myController = TextEditingController();
-
-  changeValueInput() {
-    setState(() {
-      _counter = myController.text.length;
-    });
-  }
-
+  YesOrNo? q1 = YesOrNo.no;
+  YesOrNo? q2 = YesOrNo.no;
+  YesOrNo? q3 = YesOrNo.no;
+  YesOrNo? q4 = YesOrNo.no;
+  YesOrNo? q5 = YesOrNo.no;
   @override
-  void initState() {
-    myController.addListener(changeValueInput);
-  }
-
+  void initState() {}
+  var styleFrom = TextButton.styleFrom(
+    primary: Colors.black87,
+    textStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+    backgroundColor: Colors.amber,
+    padding: EdgeInsets.only(right: 30.0, left: 30.0, top: 15.0, bottom: 15.0),
+  );
+  final myController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Test',
-          style: TextStyle(
-            color: Colors.white,
+    return Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: Colors.black87,
+          appBar: AppBar(
+            title: Text(
+              'علائمی که دارید را انتخاب کنید:',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
           ),
-        ),
-      ),
-      body: Center(
-        //        padding: EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextFormField(
-              controller: myController,
-              onChanged: changeValueInput(),
-              decoration: new InputDecoration(
-                labelText: "Enter Email",
-                fillColor: Colors.white,
-                border: new OutlineInputBorder(
-                  borderRadius: new BorderRadius.circular(25.0),
-                  borderSide: new BorderSide(),
-                ),
-                //fillColor: Colors.green
+          body: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 50.0, horizontal: 40.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: TextField(
+                      controller: myController,
+                      style: TextStyle(color: Colors.amber),
+                      decoration: InputDecoration(
+                        labelStyle: TextStyle(color: Colors.white),
+                        focusColor: Colors.amber,
+                        fillColor: Colors.amber,
+                        enabledBorder: const OutlineInputBorder(
+                          borderSide:
+                              const BorderSide(color: Colors.white, width: 0.0),
+                        ),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide:
+                              const BorderSide(color: Colors.amber, width: 0.0),
+                        ),
+                        border: OutlineInputBorder(),
+                        labelText: 'نام و نام خانوادگی',
+                      ),
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          '1. احساس تب و لرز؟',
+                          style: TextStyle(color: Colors.white, fontSize: 15),
+                        ),
+                      ),
+                      Column(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          RadioListTile<YesOrNo>(
+                            dense: true,
+                            title: const Text(
+                              'بله',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                            value: YesOrNo.yes,
+                            groupValue: q1,
+                            onChanged: (YesOrNo? value) {
+                              setState(() {
+                                q1 = value;
+                              });
+                            },
+                          ),
+                          RadioListTile<YesOrNo>(
+                            dense: true,
+                            title: const Text(
+                              'خیر',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                            value: YesOrNo.no,
+                            groupValue: q1,
+                            onChanged: (YesOrNo? value) {
+                              setState(() {
+                                q1 = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          '2. احساس خستگی زیاد',
+                          style: TextStyle(color: Colors.white, fontSize: 15),
+                        ),
+                      ),
+                      Column(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          RadioListTile<YesOrNo>(
+                            dense: true,
+                            title: const Text(
+                              'بله',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                            value: YesOrNo.yes,
+                            groupValue: q2,
+                            onChanged: (YesOrNo? value) {
+                              setState(() {
+                                q2 = value;
+                              });
+                            },
+                          ),
+                          RadioListTile<YesOrNo>(
+                            dense: true,
+                            title: const Text(
+                              'خیر',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                            value: YesOrNo.no,
+                            groupValue: q2,
+                            onChanged: (YesOrNo? value) {
+                              setState(() {
+                                q2 = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          '3. سرفه خشک',
+                          style: TextStyle(color: Colors.white, fontSize: 15),
+                        ),
+                      ),
+                      Column(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          RadioListTile<YesOrNo>(
+                            dense: true,
+                            title: const Text(
+                              'بله',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                            value: YesOrNo.yes,
+                            groupValue: q3,
+                            onChanged: (YesOrNo? value) {
+                              setState(() {
+                                q3 = value;
+                              });
+                            },
+                          ),
+                          RadioListTile<YesOrNo>(
+                            dense: true,
+                            title: const Text(
+                              'خیر',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                            value: YesOrNo.no,
+                            groupValue: q3,
+                            onChanged: (YesOrNo? value) {
+                              setState(() {
+                                q3 = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          '4. گلو درد',
+                          style: TextStyle(color: Colors.white, fontSize: 15),
+                        ),
+                      ),
+                      Column(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          RadioListTile<YesOrNo>(
+                            dense: true,
+                            title: const Text(
+                              'بله',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                            value: YesOrNo.yes,
+                            groupValue: q4,
+                            onChanged: (YesOrNo? value) {
+                              setState(() {
+                                q4 = value;
+                              });
+                            },
+                          ),
+                          RadioListTile<YesOrNo>(
+                            dense: true,
+                            title: const Text(
+                              'خیر',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                            value: YesOrNo.no,
+                            groupValue: q4,
+                            onChanged: (YesOrNo? value) {
+                              setState(() {
+                                q4 = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
+                          '5. از دست دادن طعم یا بو',
+                          style: TextStyle(color: Colors.white, fontSize: 15),
+                        ),
+                      ),
+                      Column(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          RadioListTile<YesOrNo>(
+                            dense: true,
+                            title: const Text(
+                              'بله',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                            value: YesOrNo.yes,
+                            groupValue: q5,
+                            onChanged: (YesOrNo? value) {
+                              setState(() {
+                                q5 = value;
+                              });
+                            },
+                          ),
+                          RadioListTile<YesOrNo>(
+                            dense: true,
+                            title: const Text(
+                              'خیر',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                            value: YesOrNo.no,
+                            groupValue: q5,
+                            onChanged: (YesOrNo? value) {
+                              setState(() {
+                                q5 = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  TextButton(
+                    style: styleFrom,
+                    onPressed: () {
+                      calculateAndSave(myController.text, q1, q2, q3, q4, q5);
+                    },
+                    child: Text('مشاهده تاریخچه'),
+                  ),
+                ],
               ),
-              keyboardType: TextInputType.number,
-              style: new TextStyle(fontFamily: "Poppins", color: Colors.red),
             ),
-            Text(
-              'asfasfasf',
-              style: TextStyle(color: Colors.red),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 50.0, bottom: 25.0),
-              child: Icon(
-                Icons.accessibility,
-                color: Colors.green,
-              ),
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-            Text(
-              '$_clicked',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            _clicked++;
-          });
-        },
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-        backgroundColor: Colors.redAccent,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-          currentIndex: 0,
-          fixedColor: Colors.green,
-          items: [
-            BottomNavigationBarItem(
-              title: Text("Home"),
-              icon: Icon(Icons.home),
-            ),
-            BottomNavigationBarItem(
-              title: Text("Search"),
-              icon: Icon(Icons.search),
-            ),
-          ],
-          onTap: (int indexOfItem) {
-            final snackBar = SnackBar(
-              content: Text("Clicked " + indexOfItem.toString()),
-              backgroundColor: Colors.green,
-            );
-            ScaffoldMessenger.of(context).showSnackBar(snackBar);
-          }),
-      drawer: Drawer(
-        child: ListView(
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.green,
-              ),
-              child: Text(
-                'GeeksforGeeks',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.undo),
-              title: Text('Item 1'),
-              onTap: () {
-                final snackBar = SnackBar(
-                  content: Text("Clicked Item 1"),
-                  backgroundColor: Colors.green,
-                );
-                ScaffoldMessenger.of(context).showSnackBar(snackBar);
-              },
-            ),
-            ListTile(
-              title: Text('Item 2'),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
+}
+
+void calculateAndSave(name, q1, q2, q3, q4, q5) async {
+  var sum = 0;
+  if (q1 == YesOrNo.yes) {
+    sum += 25;
+  }
+  if (q2 == YesOrNo.yes) {
+    sum += 25;
+  }
+  if (q3 == YesOrNo.yes) {
+    sum += 25;
+  }
+  if (q4 == YesOrNo.yes) {
+    sum += 25;
+  }
+  if (q5 == YesOrNo.yes) {
+    sum += 25;
+  }
+  print(name + sum.toString());
+  // Create a Dog and add it to the dogs table
+  DBProvider.db
+      .newClient(Client(name: name, number: sum.toString()));
 }
