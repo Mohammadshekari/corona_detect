@@ -28,7 +28,7 @@ class DBProvider {
         onOpen: (db) {},
         onCreate: (Database db, int version) async {
           await db.execute(
-            "CREATE TABLE Notes(id INTEGER PRIMARY KEY, title TEXT, number TEXT)",);
+            "CREATE TABLE Notes(id INTEGER PRIMARY KEY, title TEXT, gender TEXT, number TEXT)",);
         });
   }
 
@@ -36,7 +36,7 @@ class DBProvider {
     final db = await database;
     var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM Notes");
     int id = table.first["id"];
-    var raw = await db.rawInsert("INSERT Into Notes (id,title,number)"
+    var raw = await db.rawInsert("INSERT Into Notes (id,title,gender,number)"
         " VALUES (?,?,?)", [id, newClient.name, newClient.number]);
     return raw;
   }
